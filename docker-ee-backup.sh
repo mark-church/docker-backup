@@ -24,7 +24,7 @@ startup() {
 
     source ucp-bundle/env.sh
 
-    DTR_VERSIONa=$(docker ps | grep dtr-rethink | awk '{print $2}' | awk -F: '{print $2}')
+    DTR_VERSION=$(docker ps | grep dtr-rethink | awk '{print $2}' | awk -F: '{print $2}')
 
     DTR_REPLICA=$(docker ps | grep dtr-rethink | awk '{print $NF}' | awk -F- '{print $NF}')
 
