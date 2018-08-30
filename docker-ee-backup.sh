@@ -18,15 +18,15 @@ startup() {
     AUTHTOKEN=$(curl -sk -d "{\"username\":\"${USERNAME}\",\"password\":\"${PASSWORD}\"}" "https://${UCP_URL}/auth/login" | jq -r '.auth_token')
     
     # Download the client certificate bundle
-    curl -k -H "Authorization: Bearer $AUTHTOKEN" "https://${UCP_URL}/api/clientbundle" -o ucp-bundle-${TIME}-${USERNAME}.tar
+    curl -f -k -H "Authorization: Bearer $AUTHTOKEN" "https://${UCP_URL}/api/clientbundle" -o ucp-bundle-${TIME}-${USERNAME}.zip
 
-    unzip -oq -d /ucp-bundle ucp-bundle-${TIME}-${USERNAME}.tar
+    unzip -oq -d /ucp-bundle ucp-bundle-${TIME}-${USERNAME}.zip
 
-    source ucp-bundle/env.sh
+    cd /ucp-bundle && source env.sh && cd ${OLDPWD}
 
-    DTR_VERSIONa=$(docker ps | grep dtr-rethink | awk '{print $2}' | awk -F: '{print $2}')
+    DTR_VERSION=$(docker ps | grep dtr-rethink | awk '{print $2}' | awk -F: '{print $2}' | head -n 1)
 
-    DTR_REPLICA=$(docker ps | grep dtr-rethink | awk '{print $NF}' | awk -F- '{print $NF}')
+    DTR_REPLICA=$(docker ps | grep dtr-rethink | awk '{print $NF}' | awk -F- '{print $NF}' | head -n 1)
 
     unset DOCKER_TLS_VERIFY
     unset DOCKER_CERT_PATH
@@ -100,10 +100,13 @@ ucpBackup() {
     echo "UCP backup complete and saved as ${UCP_BACKUP_NAME}"
 }
 
+cleanup() {
+    rm "ucp-bundle-${TIME}-${USERNAME}.zip"
+}
+
 #Entrypoint for program
 startup
 dtrBackup
 ucpBackup
+cleanup
 echo "UCP and DTR backups are complete. Remember to test the backups with a UCP & DTR restore from time to time."
-
-
